@@ -1,60 +1,88 @@
 <template>
-  <div>
-    <div>
-      <h1>Search Producs</h1>
+  <div class="container">
+    <section class="search">
+      <b-input placeholder="Search" @keyup.native.enter="search" v-model="query"></b-input>
+    </section>
+    <div class="product-count">{{ `${total} products`}}</div>
+    <div class="products-list">
+      <product-tile v-for="product in products" :key="product._id" :product="product" />
+      <infinite-loading @infinite="infiniteHandler"></infinite-loading>
     </div>
-    <form>
-      <div>
-        <label for="search">Search</label>
-        <input type="text" name="search" id="search" placeholder="search" v-model="query" />
-        <span></span>
-      </div>
-    </form>
   </div>
 </template>
 
 <script>
+import InfiniteLoading from "vue-infinite-loading";
+import ProductTile from "./ProductTile";
+import { api } from "../utils.ts";
 import axios from "axios";
+import "buefy/dist/buefy.css";
 export default {
   name: "Search",
   data() {
     return {
       query: "",
+      page: 0,
+      total: 0,
       products: []
     };
   },
+  components: {
+    ProductTile,
+    InfiniteLoading
+  },
   methods: {
-    search: function() {
+    infiniteHandler($state) {
       axios
-        .get("http://127.0.0.1:3001/search?q=" + this.query)
+        .get(`${api}/products?p=${this.page}&q=${this.query}`)
         .then(response => {
-          console.log(response);
-          this.products = response.data;
+          this.total = response.data.total;
+          const products = response.data.hits;
+          if (products.length) {
+            this.page += 1;
+            this.products.push(...products);
+            if ($state) {
+              $state.loaded();
+            }
+          } else {
+            $state.complete();
+          }
         });
+    },
+    search() {
+      axios.get(`${api}/search?q=${this.query}`).then(response => {
+        this.products = response.data.hits;
+        this.total = response.data.total;
+      });
     }
   },
-  watch: {
-    query: function() {
-      this.search();
-    }
-  },
-  beforeMount() {}
+  beforeMount() {
+    this.infiniteHandler();
+  }
 };
 </script>
 
 <style scoped>
-h3 {
-  margin: 40px 0 0;
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-ul {
-  list-style-type: none;
-  padding: 0;
+.search {
+  display: flex;
 }
-li {
-  display: inline-block;
-  margin: 0 10px;
+.products-list {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 20px;
 }
-a {
-  color: #42b983;
+.product-count {
+  width: 100%;
+  padding-left: 20px;
+  text-align: start;
+}
+.autocomplete {
+  width: 300px;
 }
 </style>

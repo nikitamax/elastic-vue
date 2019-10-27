@@ -4,6 +4,19 @@ const client = new elasticsearch.Client({
   hosts: ['http://localhost:9200']
 })
 
+client.indices.create(
+  {
+    index: 'elastic-vue-products'
+  },
+  function(error, response, status) {
+    if (error) {
+      console.log(error)
+    } else {
+      console.log('created a new index', response)
+    }
+  }
+)
+
 const products = require('./products.json')
 var bulk = []
 products.forEach(product => {

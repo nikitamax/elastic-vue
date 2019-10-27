@@ -12,6 +12,8 @@ const bodyParser = require('body-parser')
 
 const path = require('path')
 
+const size = 15
+
 client.ping(
   {
     requestTimeout: 30000
@@ -42,10 +44,12 @@ app.use(function(req, res, next) {
 })
 
 app.get('/search', function(req, res) {
-  let body = {
-    size: 10,
+  const body = {
+    size,
     query: {
-      match_all: {}
+      match: {
+        name: req.query['q']
+      }
     }
   }
   client
@@ -55,7 +59,40 @@ app.get('/search', function(req, res) {
       type: 'products_list'
     })
     .then(results => {
-      res.send(results.hits.hits)
+      res.send(results.hits)
+    })
+    .catch(err => {
+      console.log(err)
+      res.send([])
+    })
+})
+
+app.get('/products', function(req, res) {
+  const search = req.query['q']
+  const page = req.query['p']
+
+  const from = page == 0 ? page : size * page + 1
+  let query = { match_all: {} }
+  if (search) {
+    query = {
+      match: {
+        name: search
+      }
+    }
+  }
+  const body = {
+    size,
+    from,
+    query
+  }
+  client
+    .search({
+      index: 'elastic-vue-products',
+      body: body,
+      type: 'products_list'
+    })
+    .then(results => {
+      res.send(results.hits)
     })
     .catch(err => {
       console.log(err)
