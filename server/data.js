@@ -36,3 +36,32 @@ client.bulk({ body: bulk }, function(err, response) {
     console.log('Successfully imported %s', products.length)
   }
 })
+
+client.indices.putMapping(
+  {
+    index: 'elastic-vue-products',
+    type: 'products_list',
+    body: {
+      properties: {
+        sku: { type: 'long' },
+        name: { type: 'text' },
+        type: { type: 'text' },
+        price: { type: 'float' },
+        upc: { type: 'text' },
+        shipping: { type: 'float' },
+        description: { type: 'text' },
+        manufacturer: { type: 'text' },
+        model: { type: 'text' },
+        url: { type: 'text' },
+        image: { type: 'text' }
+      }
+    }
+  },
+  function(err, response) {
+    if (err) {
+      console.log('Failed mapping operation', err)
+    } else {
+      console.log('Successfully', response)
+    }
+  }
+)
