@@ -48,6 +48,12 @@ client.indices.putMapping(
         type: { type: 'text' },
         price: { type: 'float' },
         upc: { type: 'text' },
+        category: {
+          properties: {
+            id: { type: 'text' },
+            name: { type: 'text' }
+          }
+        },
         shipping: { type: 'float' },
         description: { type: 'text' },
         manufacturer: { type: 'text' },
