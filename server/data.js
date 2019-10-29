@@ -33,7 +33,7 @@ client.bulk({ body: bulk }, function(err, response) {
   if (err) {
     console.log('Failed Bulk operation', err)
   } else {
-    console.log('Successfully imported %s', products.length)
+    console.log('Successfully imported', products.length)
   }
 })
 

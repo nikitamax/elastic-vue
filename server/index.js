@@ -1,17 +1,13 @@
-const elasticsearch = require('elasticsearch')
+elasticsearch = require('elasticsearch')
+const express = require('express')
+const app = express()
+const bodyParser = require('body-parser')
+const path = require('path')
+const helper = require('./utils')
 
 const client = new elasticsearch.Client({
   hosts: ['http://localhost:9200']
 })
-
-const express = require('express')
-
-const app = express()
-
-const bodyParser = require('body-parser')
-
-const path = require('path')
-
 const size = 15
 
 client.ping(
@@ -43,48 +39,20 @@ app.use(function(req, res, next) {
   next()
 })
 
-app.get('/search', function(req, res) {
-  const body = {
-    size,
-    query: {
-      match: {
-        name: req.query['q']
-      }
-    }
-  }
-  client
-    .search({
-      index: 'elastic-vue-products',
-      body: body,
-      type: 'products_list'
-    })
-    .then(results => {
-      res.send(results.hits)
-    })
-    .catch(err => {
-      console.log(err)
-      res.send([])
-    })
-})
-
 app.get('/products', function(req, res) {
-  const search = req.query['q']
-  const page = req.query['p']
-
+  const search = req.query['query']
+  const page = req.query['page']
+  const sortBy = req.query['sort']
   const from = page == 0 ? page : size * page + 1
-  let query = { match_all: {} }
-  if (search) {
-    query = {
-      match: {
-        name: search
-      }
-    }
-  }
+  const sort = helper.getSort(sortBy)
+  const query = helper.getQuery(search)
   const body = {
     size,
     from,
-    query
+    query,
+    sort
   }
+  console.log(body)
   client
     .search({
       index: 'elastic-vue-products',
