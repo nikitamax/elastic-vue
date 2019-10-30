@@ -9,13 +9,11 @@
     <div class="product-count">{{ `${total} products`}}</div>
     <div class="products-list">
       <product-tile v-for="product in products" :key="product._id" :product="product" />
-      <infinite-loading @infinite="infiniteHandler"></infinite-loading>
     </div>
   </div>
 </template>
 
 <script>
-import InfiniteLoading from "vue-infinite-loading";
 import ProductTile from "./ProductTile";
 import { api } from "../utils.ts";
 import axios from "axios";
@@ -27,28 +25,37 @@ export default {
       query: "",
       page: 0,
       total: 0,
+      loading: false,
       sortParams: ["Default", "Price Low-High", "Price High-Low"],
       products: [],
       sortBy: "Default"
     };
   },
   components: {
-    ProductTile,
-    InfiniteLoading
+    ProductTile
   },
   methods: {
-    async infiniteHandler($state) {
+    async loadMore() {
+      this.loading = true;
       const response = await this.getProducts();
       this.total = response.data.total;
       const products = response.data.hits;
       if (products.length) {
         this.page += 1;
         this.products.push(...products);
-        if ($state) {
-          $state.loaded();
-        }
       } else {
-        $state.complete();
+        console.log("Done");
+      }
+      this.loading = false;
+    },
+    handleScroll({
+      target: {
+        scrollingElement: { scrollTop, clientHeight, scrollHeight }
+      }
+    }) {
+      if (scrollTop + clientHeight + 500 >= scrollHeight) {
+        if (!this.loading && this.products.length < this.total - 1)
+          this.loadMore();
       }
     },
     async listProducts() {
@@ -66,6 +73,12 @@ export default {
     changeSort() {
       this.listProducts();
     }
+  },
+  created: function() {
+    window.addEventListener("scroll", this.handleScroll);
+  },
+  destroyed: function() {
+    window.removeEventListener("scroll", this.handleScroll);
   },
   beforeMount() {
     this.listProducts();
