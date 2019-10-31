@@ -19,8 +19,11 @@ function getSort(sortBy) {
 function getQuery(search) {
   if (search) {
     return {
-      match: {
-        name: search
+      fuzzy: {
+        name: {
+          value: search,
+          fuzziness: 2
+        }
       }
     }
   }
