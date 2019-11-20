@@ -12,6 +12,6 @@ node index.js ---> run server
 
 cd web
 
-npm install
+yarn
 
 yarn serve
